@@ -21,6 +21,6 @@ test("Cancel a canceler", function(t) {
   // Underlying promise fulfills in three seconds.
   const promise = new Promise(timeout(300, "elapsed"), canceler);
 
-  promise.then(value => t.equal(value, "elapsed"));
+  promise.then(value => t.equal(value, "elapsed", "promise should fulfill"));
 
 });

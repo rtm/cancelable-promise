@@ -16,6 +16,6 @@ test("Cancel a promise too late", function(t) {
   // Create a cancelable promise which resolves after one second.
   const promise = new Promise(timeout(100, "elapsed"), canceler);
 
-  promise.then(value => t.equal(value, "elapsed"));
+  promise.then(value => t.equal(value, "elapsed", "promise should fulfill"));
 
 });

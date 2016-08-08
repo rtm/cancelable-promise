@@ -18,11 +18,11 @@ test("Cancel a chain in the middle", function(t) {
   const p3 = () => new Promise(timeout(100, "p3"), canceler);
 
   p1()
-    .then(() => t.pass("p1 completed"))
+    .then(() => t.pass("first promise in chain should fulfill"))
     .then(p2)
     .then(() => t.fail("p2 completed"))
     .then(p3)
     .then(() => t.fail("p3 completed"))
-    .catch(error => t.equal(error.message, "canceled"));
+    .catch(error => t.equal(error.message, "canceled", "promise chain should be canceled"));
 
 });

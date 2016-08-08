@@ -17,6 +17,6 @@ test("Cancel a two-second promise after one second", function(t) {
   // Create a cancelable promise using the requestor and canceler.
   const promise = new Promise(timeout(200, "elapsed"), canceler);
 
-  promise.catch(reason => t.equal(reason.message, "canceled"));
+  promise.catch(reason => t.equal(reason.message, "canceled", "promise should be cancelled"));
 
 });

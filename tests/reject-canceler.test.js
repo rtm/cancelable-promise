@@ -29,6 +29,6 @@ test("onCancel handler rejects, nullfying cancellation", function(t) {
   // Create the underlying promise with canceler.
   const promise = new Promise(timeout(200, "elapsed"), canceler);
 
-  promise.then(value => t.equal(value, "elapsed"));
+  promise.then(value => t.equal(value, "elapsed", "promise should fulfill"));
 
 });

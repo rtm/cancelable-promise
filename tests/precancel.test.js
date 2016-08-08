@@ -19,6 +19,6 @@ test("Precanceling", function(t) {
   // Create a promise using the precanceled canceler.
   const promise = new Promise(timeout(200, "elapsed"), canceler);
 
-  promise.catch(reason => t.equal(reason.message, "precanceled"));
+  promise.catch(reason => t.equal(reason.message, "precanceled", "reject reason should be that given in call to precancel"));
 
 });

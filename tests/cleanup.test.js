@@ -17,7 +17,6 @@ test("cancel promise with cleanup", function(t) {
   // Create a cancelable promise using the requestor and canceling promise.
   const promise = new Promise(timeoutWithCancelHandler(200, "elapsed"), canceler);
 
-  promise.catch(e => t.equal(e.message, "cancelled and cleaned up"));
-  promise.then(x => console.log(x));
+  promise.catch(e => t.equal(e.message, "cancelled and cleaned up", "promise should be cancelled and cleaned up"));
 
 });
