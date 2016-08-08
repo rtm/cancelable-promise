@@ -1,15 +1,19 @@
 {
-  "name": "cancellable-promises",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@rtm/cancelable-promise",
+  "version": "0.0.1",
+  "description": "A lightweight approach to cancelable promises",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape 'tests/*.test.js'"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "tape": "^4.6.0"
   },
-  "dependencies": {
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rtm/cancelable-promise.git"
   }
 }

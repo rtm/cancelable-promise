@@ -1,0 +1,40 @@
+// tests/http.test.js
+//
+// Cancel an XHR request.
+// DOESN'T WORK. FIX.
+
+require('..');
+const {timeout} = require('./timeout');
+const test = require('tape');
+require('./http');
+const http = require('http');
+
+function makeExecutor() {
+  return function(resolve) {
+    const request = http.request('http://localhost:8124');
+    request.end(function() {
+      console.log("callback from request.end");
+      resolve();
+    });
+
+    return () => {
+      request.abort();
+      console.log("aborting request!");
+      return Promise.resolve("aborted");
+    };
+  };
+}
+
+test("Cancel an XHR request", function(t) {
+
+  t.plan(1);
+
+  // Create a canceler promise firing after one second.
+  const canceler = new Promise(timeout(10, "canceled"));
+
+  // Create a cancelable promise using the requestor and canceler.
+  const promise = new Promise(makeExecutor(), canceler);
+
+  promise.catch(reason => t.equal(reason.message, "aborted"));
+
+});
