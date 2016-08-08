@@ -1,4 +1,4 @@
-// tests/timeout.ts
+// tests/timeout.test.js
 //
 // Simple test for canceling a promise which would resolve in two seconds
 // after one second instead.
