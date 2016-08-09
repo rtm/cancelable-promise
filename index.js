@@ -71,7 +71,7 @@ class CancelablePromise extends oldPromise {
         cancelerValue => {
           if (!onCancel) return reject(new PromiseCanceledError(cancelerValue));
 
-          onCancel(cancelerValue).then(
+          Promise.resolve(onCancel(cancelerValue)).then(
             onCancelValue => reject(new PromiseCanceledError(onCancelValue)),
             NOOP // onCancel promise rejected--do nothing.
           );

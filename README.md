@@ -30,7 +30,7 @@ This yields
 ### Cleaning up after cancellations
 
 To clean up after cancellations,
-have the executor (the function you pass to the promise constructor) return a function returning a promise for cleaning up,
+have the executor (the function you pass to the promise constructor) return a function for cleaning up,
 called the `onCancel` handler:
 
 ```
@@ -39,14 +39,13 @@ function timeout(ms, msg) {
     const timer = setTimeout(() => resolve(msg), ms);
 
     // Return a promise for cleaning up after cancellation
-    return () => Promise.resolve(clearTimer(timer));
+    return () => clearTimer(timer);
   };
 }
 ```
 
 In this case, if and when the canceler fulfills,
-the promise returned by `onCancel` will run,
-and when it in turn fulfills, then the underlying promise will be rejected.
+`onCancel` will run, then the underlying promise will be rejected.
 
 In the example given, there is no real point in clearing the timer.
 A better example is aborting an XHR request.
@@ -77,11 +76,11 @@ If you so prefer, you may check the reason yourself with `isPromiseCanceledError
 * A new flavor of promise which may be canceled when some other promise (the "canceler") resolves,
 with optional clean-up logic.
 
-* Cancelers are associated with promises at promise-creation time,
+* Cancelers which are associated with promises at promise-creation time,
 by passing the canceler as a second parameter to the `Promise` constructor.
 In other words, any promise has exactly zero or one cancelers which cannot be changed after creation.
 
-* A canceled promise is treated as rejected,
+* Canceled promises treated as rejected,
 with a special cancelation-related error object as its reason.
 
 ### Terminology
@@ -97,8 +96,18 @@ with a special cancelation-related error object as its reason.
 **Cancel**: the action of putting a promise into the "canceled" state, by virtue of its canceler having resolved.
 
 **`onCancel` handler**: a function returned by the executor,
-returning a promise representing post-cancellation cleanup,
+to handle pre-cancellation cleanup,
 which is called when the promise is canceled.
+
+### Some spec details relating to `onCancel` handler
+
+* If an `onCancel` handler is provided (by returning it from the executor),
+when the promise is canceled the rejection reason is the canceled promise error object whose reason ("message") is the value returned from the handler.
+
+* Long-running `onCancel` handlers may return a promise.
+The resolved value of that promise is used as the rejection reason for the underlying promise.
+If the promise returned by `onCancel` never resolves, or rejects, then the cancellation does not take place.
+This provides a way for `onCancel` handlers to "refuse` cancellation.
 
 ## Running the tests
 

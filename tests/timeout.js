@@ -16,7 +16,7 @@ function timeoutWithCancelHandler(ms, value) {
     const timer = setTimeout(() => resolve(value), ms);
     return () => {
       clearTimeout(timer);
-      return Promise.resolve("cancelled and cleaned up");
+      return "cancelled and cleaned up";
     };
   };
 }

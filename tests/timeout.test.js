@@ -7,7 +7,7 @@ require('..');
 const {timeout} = require('./timeout');
 const test = require('tape');
 
-test("Cancel a two-second promise after one second", function(t) {
+test("Cancel a promise before it fulfills", function(t) {
 
   t.plan(1);
 
