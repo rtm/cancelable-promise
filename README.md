@@ -1,4 +1,5 @@
-This repository suggests a lightweight mechanism for promise cancellation.
+This repository proposes a lightweight mechanism for promise cancellation,
+and provides a fully-functional polyfill.
 
 ## Basic use cases
 
@@ -99,15 +100,30 @@ with a special cancelation-related error object as its reason.
 to handle pre-cancellation cleanup,
 which is called when the promise is canceled.
 
-### Some spec details relating to `onCancel` handler
+### `onCancel` handlers as promises
 
-* If an `onCancel` handler is provided (by returning it from the executor),
-when the promise is canceled the rejection reason is the canceled promise error object whose reason ("message") is the value returned from the handler.
-
-* Long-running `onCancel` handlers may return a promise.
-The resolved value of that promise is used as the rejection reason for the underlying promise.
+Long-running `onCancel` handlers may return a promise.
 If the promise returned by `onCancel` never resolves, or rejects, then the cancellation does not take place.
 This provides a way for `onCancel` handlers to "refuse` cancellation.
+
+### `PromiseCanceledError`
+
+`PromiseCanceledError` is a subclass of error used as the rejection reason for a canceled promise.
+It may be detected by `isPromiseCanceledError`.
+Its `name` is `"PromiseCanceledError"`.
+Its `message` property describes the cancellation, as follows:
+
+* If there is no `onCancel` handler provided,
+then `message` is the value to which the canceler resolves.
+
+* If there is an `onCancel` handler provided (by returning it from the executor),
+then `message` is the value returned by that function.
+
+* However, if the `onCancel` handler returns a promise,
+then `message` is the value to which that promise resolves.
+
+* If canceler has been "precanceled",
+then `message` is the reason passed to `precancel()`.
 
 ## Running the tests
 
@@ -119,7 +135,7 @@ npm test
 
 This requires node >= 6.0.0.
 
-This POC overwrites the built-in `Promise` object at the moment that `cancelable-promise.js` is `require`'d.
+This POC overwrites the built-in `Promise` object at the moment of `require('@rtm/cancelable-promise')`.
 
 ## Installation
 
