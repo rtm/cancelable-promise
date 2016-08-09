@@ -25,7 +25,7 @@ function animate(interval, canceler) {
   }();
 }
 
-test("Cancel a chain in the middle", function(t) {
+test("Cancel a promise-based animation", function(t) {
 
   t.plan(1);
 

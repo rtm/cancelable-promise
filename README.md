@@ -39,7 +39,7 @@ function timeout(ms, msg) {
   return function(resolve) {
     const timer = setTimeout(() => resolve(msg), ms);
 
-    // Return a promise for cleaning up after cancellation
+    // Return a function for cleaning up after cancellation.
     return () => clearTimer(timer);
   };
 }
@@ -104,11 +104,11 @@ which is called when the promise is canceled.
 
 Long-running `onCancel` handlers may return a promise.
 If the promise returned by `onCancel` never resolves, or rejects, then the cancellation does not take place.
-This provides a way for `onCancel` handlers to "refuse` cancellation.
+This provides a way for `onCancel` handlers to "refuse" cancellation.
 
 ### `PromiseCanceledError`
 
-`PromiseCanceledError` is a subclass of error used as the rejection reason for a canceled promise.
+`PromiseCanceledError` is a subclass of `Error` used as the rejection reason for a canceled promise.
 It may be detected by `isPromiseCanceledError`.
 Its `name` is `"PromiseCanceledError"`.
 Its `message` property describes the cancellation, as follows:
