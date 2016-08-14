@@ -1,60 +1,68 @@
-// cancelable-promise/index.js
+// cancelable-promise/index.ts
 //
 // Implement lightweight cancelable promises.
 //
 // Usage:
 // ```
-// require('cancelable-promise');
+// import {CancelablePromise} from 'cancelable-promise';
 //
-// new Promise(function(resolve, reject, cancel) { ... }.onCancel(...).then(...).catch(...);
-// new Promise(function(resolve, reject) { ... }, canceler).onCancel(...).then(...).catch(...);
+// new CancelablePromise(function(resolve, reject[, cancel]) {...}[, canceler])[ { ... }.onCancel(...).then(...).catch(...);
+//                                                  ^^^^^^           ^^^^^^^^
 // ```
-
-const oldPromise = Promise;
-
-Promise = class extends oldPromise {
-
-  constructor(executor, canceler) {
-    var canceled = false;
-    var cancelReason;
-    var settled = false;
-    var onCancelHandlers = [];
-
-    function cancel(v) {
-      if (settled || canceled) return;
-      canceled = true;
-      cancelReason = v;
-      onCancelHandlers.forEach(handler => handler(cancelReason));
+"use strict";
+class CancelablePromise extends Promise {
+    constructor(executor, canceler) {
+        let canceled = false; // Promise is in pending/canceled state.
+        let cancelReason; // Reason given at cancellation time.
+        let settled = false; // Promise has been settled; may no longer be canceled.
+        let onCancels = []; // `onCancel` handlers registered before cancellation.
+        let cancelPromiseResolver;
+        let cancelPromise = new Promise(resolver => cancelPromiseResolver = resolver);
+        // Cancel the promise. Mark it as such. Invoke pre-registered handlers if any.
+        function cancel(v) {
+            if (settled || canceled)
+                return;
+            cancelReason = v;
+            onCancels.forEach(handler => handler(cancelReason));
+            cancelPromiseResolver(cancelReason);
+            canceled = true;
+        }
+        // Resolve or reject the promise, marking it as settled to prevent cancellation.
+        function settle(cb) { return v => { settled = true; if (!canceled)
+            cb(v); }; }
+        // Create the underlying native promise.
+        // Set up `canceler` to possibly cancel.
+        // Call the executor with an extra `cancel` parameter.
+        super(function (resolve, reject) {
+            if (canceler)
+                canceler.then(cancel);
+            Promise.resolve().then(() => {
+                if (!canceled)
+                    executor(settle(resolve), settle(reject), cancel);
+            });
+        });
+        Object.defineProperty(this, "foobar", { value: "fuck" });
+        Object.defineProperties(this, {
+            foobar: { value: "fuck" },
+            // Event callback for canceled promises.
+            // This taps into the promise chain, leaving it intact.
+            onCancel: {
+                value(handler) {
+                    if (canceled)
+                        handler(cancelReason);
+                    else
+                        onCancels.push(handler);
+                    return this;
+                }
+            },
+            cancelThen: {
+                value(onFulfilled, onRejected) { return cancelPromise.then(onFulfilled, onRejected); }
+            }
+        });
     }
-
-    function settle(cb) { return v => { settled = true; if (!canceled) cb(v); }; }
-
-    super(function(resolve, reject) {
-      if (canceler) canceler.then(cancel);
-
-      Promise.resolve().then(() => {
-        if (!canceled) executor(settle(resolve), settle(reject), cancel);
-      });
-    });
-
-    this.onCancel = function(handler) {
-      if (canceled) handler(cancelReason);
-      else onCancelHandlers.push(handler);
-      return this;
-    };
-
-    this.onCancelThrow = function() {
-      if (canceled) throw cancelReason;
-      return this;
-    };
-
-  }
-
+    // Static method to immediately create a canceled promise.
+    static cancel(reason) {
+        return new CancelablePromise(function (_, __, cancel) { cancel(reason); });
+    }
 }
-
-Promise.all = oldPromise.all.bind(oldPromise);
-Promise.race = oldPromise.race.bind(oldPromise);
-Promise.reject = oldPromise.reject.bind(oldPromise);
-Promise.resolve = oldPromise.resolve.bind(oldPromise);
-Promise.cancel = v => new Promise(function(_, _, cancel) { cancel(v); });
-Promise.prototype = oldPromise.prototype;
+exports.CancelablePromise = CancelablePromise;

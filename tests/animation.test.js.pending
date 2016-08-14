@@ -1,0 +1,29 @@
+// tests/animation.test.js
+//
+// Cancel a recursive chain of promises implementing an animation.
+
+const {CancelablePromise} = require('..');
+const test = require('tape');
+const {timeout, timeoutExecutor} = require('./utils');
+
+function animate(interval, canceler) {
+  let n = 0;
+
+  return function loop() {
+    n++;
+    return new CancelablePromise(timeoutExecutor(interval, "interval"), canceler)
+      .then(loop);
+  }();
+}
+
+test("Cancel a promise-based animation", function(t) {
+
+  t.plan(1);
+
+  // Fire the canceler after half a second, around five iterations.
+  const canceler = timeout(500, "canceled");
+
+  animate(100, canceler)
+    .onCancel(n => t.pass(`animation canceled after running ${n} times`));
+
+});

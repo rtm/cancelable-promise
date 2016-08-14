@@ -4,8 +4,10 @@
   "description": "A lightweight approach to cancelable promises",
   "main": "index.js",
   "scripts": {
-    "test": "tape 'tests/*.test.js'"
-  },
+    "test": "tape 'tests/*.test.js'",
+    "postinstall": "typings install",
+    "build": "tsc"
+    },
   "author": "",
   "license": "ISC",
   "devDependencies": {

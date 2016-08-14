@@ -4,15 +4,15 @@
 
 require('..');
 const test = require('tape');
-const {timeout} = require('./timeout');
+const {timeout} = require('./utils');
 
 function run(interval, canceler) {
   let n = 0;
-  return new Promise(_ => {
+  return new Promise(function() {
     const timer = setInterval(() => n++, interval);
 
     return () => { clearInterval(timer); return n; };
-  }, canceler);
+  }.canceler(canceler));
 }
 
 test("cancel a setInterval-based promise", function(t) {
@@ -20,7 +20,7 @@ test("cancel a setInterval-based promise", function(t) {
   t.plan(1);
 
   // Fire the canceler after half a second.
-  const canceler = new Promise(timeout(500, "canceled"));
+  const canceler = timeout(500, "canceled");
 
   run(100, canceler)
     .catch(error => {

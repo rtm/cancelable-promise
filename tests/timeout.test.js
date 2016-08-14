@@ -3,7 +3,7 @@
 // Simple test for canceling a promise which would resolve in two seconds
 // after one second instead.
 
-require('..');
+const {CancelablePromise} = require('..');
 const {timeout, timeoutPromise, timeoutExecutor} = require('./utils');
 const test = require('tape');
 
