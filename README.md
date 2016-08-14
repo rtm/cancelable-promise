@@ -1,10 +1,12 @@
-This repository proposes a lightweight mechanism for promise cancellation,
+# Cancelable promises: a lightweight approach
+
+This repository proposes a lightweight mechanism for cancelable promises,
 and provides a fully-functional polyfill.
 
 In this proposal, canceled promises are viewed as **remaining in a permanently pending state**.
 But their status can be queried with a new method `onCancel`.
 
-For more information, see the [design notes](.design-notes.md).
+For more information, see the [design notes](./design-notes.md).
 
 ## Basic notions
 
@@ -12,16 +14,16 @@ Promises can be canceled, but only if they are still pending.
 Once canceled, they remain in pending state forever.
 This makes sense, because they did not run,
 and therefore have neither succeeded nor failed.
-Once cancelled, promises may no longer be resolved or rejected.
+Once canceled, promises may no longer be resolved or rejected.
 
 Promises are not cancelable from the outside.
-Cancelation logic is defined when they are created,
+Cancellation logic is defined when they are created,
 in the same way that resolve/reject behavior is defined,
 by calling the new third `cancel` parameter to the executor.
 Often, the cancellation will be driven by a promise provided from outside known as the "canceler".
 
-Cancelled promises may be queried by the new method `Promise#onCancel`,
-providing a handler which will be invoked immediate if the promise is already cancelled,
+Canceled promises may be queried by the new method `Promise#onCancel`,
+providing a handler which will be invoked immediate if the promise is already canceled,
 or when the promise is canceled in the future.
 
 ## Basic use cases
@@ -56,7 +58,7 @@ This yields
 ### Defining your own cancellation logic
 
 For cases where providing a canceler to the constructor does not suffice,
-you may define your own cancelation behavior inside the "executor",
+you may define your own cancellation behavior inside the "executor",
 using the new, third parameter called 'cancel'.
 The following is a made-up example of this:
 
@@ -107,7 +109,7 @@ cancellation having occurred, and a `cancelThen` method which is a shortcut for 
 
 No, it won't.
 
-#### How do I tell chained promises that an earlier promise has been cancelled?
+#### How do I tell chained promises that an earlier promise has been canceled?
 
 They don't need to be told. They will never be triggered.
 
@@ -121,7 +123,7 @@ and the promise will immediately go into canceled state.
 #### How do I use cancelable promises in async functions?
 
 Of course, you can't await something that will never resolve, like a canceled promise.
-You'll need to wait for either the promise resolving **or** it being cancelled,
+You'll need to wait for either the promise resolving **or** it being canceled,
 which can be done with `Promise.race`.
 In the example below, we turn a cancellation into a rejection,
 which might be easier to handle downstream:
@@ -132,7 +134,7 @@ const result = Promise.race([cancelablePromise, cancelablePromise.cancelThen(() 
 ```
 
 This uses the `cancelThen` method available on cancelable promises,
-which triggers when the promise is cancelled.
+which triggers when the promise is canceled.
 
 ## Running tests
 

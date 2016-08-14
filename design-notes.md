@@ -1,3 +1,5 @@
+# Cancelable Promises: Design Issues
+
 This document summarizes design issues for cancelable promises,
 and motivates the choices made in this design.
 
@@ -40,7 +42,7 @@ in addition to resolved and rejected.
 Proponents of this approach insist argue that cancellation is not really an rejected state,
 but something different.
 
-In [this proposa](https://github.com/domenic/cancelable-promise),
+In [this proposal](https://github.com/domenic/cancelable-promise),
 this notion is expressed as "a canceled operation is not 'successful', but it did not really 'fail' either",
 or is "an exception that is not an error", whatever that means.
 
@@ -69,7 +71,7 @@ were cancelled instead of fulfilling "normally".
 
 ### Canceled promises as pending
 
-But come to think of it, though, we already have a status for promises that are not settled one way or another--the pending status.
+But come to think of it, we already have a status for promises that are not settled one way or another--the pending status.
 Cancellation can indeed be thought as implying that the promise will never settle.
 In this approach, "canceled" is a kind of sub-state of "pending".
 To implement this approach to canceled promises,
@@ -88,7 +90,7 @@ In this proposal, we take this approach.
 ## Requesting cancellation
 
 For requesting cancellation,
-One option is to cancel a promise directly,
+one option is to cancel a promise directly,
 but this has the drawback that unknown third parties might cancel promises.
 The other option is to specify cancellation conditions when the promise is constructed.
 
