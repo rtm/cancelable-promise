@@ -16,15 +16,12 @@ class CancelablePromise extends Promise {
         let cancelReason; // Reason given at cancellation time.
         let settled = false; // Promise has been settled; may no longer be canceled.
         let onCancels = []; // `onCancel` handlers registered before cancellation.
-        let cancelPromiseResolver;
-        let cancelPromise = new Promise(resolver => cancelPromiseResolver = resolver);
         // Cancel the promise. Mark it as such. Invoke pre-registered handlers if any.
         function cancel(v) {
             if (settled || canceled)
                 return;
             cancelReason = v;
             onCancels.forEach(handler => handler(cancelReason));
-            cancelPromiseResolver(cancelReason);
             canceled = true;
         }
         // Resolve or reject the promise, marking it as settled to prevent cancellation.
@@ -41,9 +38,7 @@ class CancelablePromise extends Promise {
                     executor(settle(resolve), settle(reject), cancel);
             });
         });
-        Object.defineProperty(this, "foobar", { value: "fuck" });
         Object.defineProperties(this, {
-            foobar: { value: "fuck" },
             // Event callback for canceled promises.
             // This taps into the promise chain, leaving it intact.
             onCancel: {
@@ -55,9 +50,7 @@ class CancelablePromise extends Promise {
                     return this;
                 }
             },
-            cancelThen: {
-                value(onFulfilled, onRejected) { return cancelPromise.then(onFulfilled, onRejected); }
-            }
+            canceled: { get() { return new Promise(resolved => this.onCancel(resolved)); } }
         });
     }
     // Static method to immediately create a canceled promise.

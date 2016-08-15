@@ -100,8 +100,8 @@ cancels the underlying promise when and if it resolves.
 ### New `onCancel` instance method on promises
 
 You may call `promise.onCancel(handler)` to be notified when a promise is canceled.
-In addition, cancelable promises expose a `cancelPromise` property which is a promise for
-cancellation having occurred, and a `cancelThen` method which is a shortcut for `cancelPromise.then`.
+In addition, cancelable promises expose a `canceled` property which is a promise for
+cancellation having occurred.
 
 ## FAQ
 
@@ -130,10 +130,10 @@ which might be easier to handle downstream:
 
 ```
 const cancelablePromise = ...;
-const result = Promise.race([cancelablePromise, cancelablePromise.cancelThen(() => { throw "rejected"; })]);
+const result = Promise.race([cancelablePromise, cancelablePromise.canceled.then(() => { throw "rejected"; })]);
 ```
 
-This uses the `cancelThen` method available on cancelable promises,
+This uses the `canceled` property available on cancelable promises,
 which triggers when the promise is canceled.
 
 ## Running tests
