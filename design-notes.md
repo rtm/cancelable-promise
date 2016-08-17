@@ -1,6 +1,6 @@
-# Cancelable Promises: Design Issues
+# Cancelable Promises: Design Notes
 
-This document summarizes design issues for cancelable promises,
+This document presents design notes for cancelable promises,
 and motivates the choices made in this design.
 
 Note that cancellation is defined here as
@@ -26,28 +26,27 @@ after all, the promised "failed" (to complete)--but is still intellectually diss
 Whatever one's concept of rejection,
 it seems peculiar to consider a cancelled promise to have "rejected".
 Whether we view rejection as a type of error, or exception, or failure,
-cancellation would not seem to fall into this category.
+cancellation would not seem to fall cleanly into any of these categories.
 
 A key problem with cancellation-as-rejection is how to distinguish such rejections in an `catch` handler.
 For instance, it might be necessary to laboriously check the `reason` to see if it is a special cancellation-related error type.
 
 On the other hand, the advantage of using the rejection state for canceled promises is that there is well established
-machinery for dealing with and propagating rejections, such as `Promise#catch`.
+machinery for dealing with and propagating and catching rejections, such as `Promise#catch`.
 
 ### Canceled promises as a third state
 
 One leading school of thought is to represent canceled promises as a third settled state,
 in addition to resolved and rejected.
 
-Proponents of this approach insist argue that cancellation is not really an rejected state,
+Proponents of this approach insist argue convincingly that cancellation is not really an rejected state,
 but something different.
 
-In [this proposal](https://github.com/domenic/cancelable-promise),
+For instance, in [this proposal](https://github.com/domenic/cancelable-promise),
 this notion is expressed as "a canceled operation is not 'successful', but it did not really 'fail' either",
-or is "an exception that is not an error", whatever that means.
-
-There is some semantic confusion here in how they describe the rejection state as "failure",
-but their overall conclusion that rejection is not a good model for cancellation still holds.
+or "is an exception that is not an error", whatever that means.
+Although there is some semantic confusion here in how they describe the rejection state as "failure",
+their overall conclusion that rejection is not a good model for cancellation nevertheless holds.
 
 The problem with introducing a third state, however,
 is that it has wide ranging effects on the entire promises paradigm,
@@ -55,31 +54,31 @@ and greatly broadens the surface area of changes required for cancelability.
 For example, `Promise#then` might require a third parameter to handle cancellation.
 Since `throw` generates a rejection, we need something new like `throw cancel` to generate a cancellation.
 In addition to `Promise#catch`, we might need new prototype methods such as `Promise#catchCancel` or `Promise#else`.
-We need new `catch { } else (e)` syntax.
+We might need new `try { } else (e)` syntax.
 We might new new `await` syntaxes.
 In fact, all of the above are part of some current proposals.
 The cognitive burden of all these changes is overwhelming for what should be a relatively simple way to cancel promises.
-Designers of these kinds of approach vastly overestimate the appetite of the JS community for such complexity.
+Designers vastly overestimate the appetite of the JS community for such complexity.
 
 ### Canceled promises as resolved promises
 
 For purposes of completeness, let us mention the option of considering canceled promises as being resolved.
-After all, the cancellation did "complete successfully".
-Howevr, this approach suffers from the same defect as canceled promises as rejections,
+After all, the promise did "complete successfully" in the sense that it was "successfully canceled".
+Howevr, this approach suffers from the same defect as treating canceled promises as rejections,
 which is that `then` handlers would need to somehow query or distinguish promises that
-were cancelled instead of fulfilling "normally".
+had been canceled instead of fulfilling "normally".
 
 ### Canceled promises as pending
 
 But come to think of it, we already have a status for promises that are not settled one way or another--the pending status.
 Cancellation can indeed be thought as implying that the promise will never settle.
-In this approach, "canceled" is a kind of sub-state of "pending".
+In this approach, "canceled" is a sub-state of "pending".
 To implement this approach to canceled promises,
 we need additional internal slots on promises to record the fact of the cancellation and its context, such as cancellation reason.
 We also need some machinery to query or report cancellations.
 
 The proposed machinery is a new `Promise#onCancel` method,
-which is called on a canceled promise with the cancellation context.
+which is called on a canceled promise with the cancellation details.
 The name `onCancel` is meant to emphasize that this is a particular specialized kind of event handler.
 `onCancel` returns the promise itself so it can be further chained as desired.
 

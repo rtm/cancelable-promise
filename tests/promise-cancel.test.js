@@ -10,7 +10,7 @@ test("Create a canceled promise", function(t) {
   t.plan(1);
 
   CancelablePromise.cancel("cancelled")
-    .onCancel(x => t.equal(x, "cancelled"));
+    .onCancel(x => t.equal(x, "cancelled"), "onCancel called with correct reason");
 
 });
 
@@ -21,14 +21,5 @@ test("Call onCancel twice", function(t) {
   CancelablePromise.cancel("cancelled")
     .onCancel(x => t.equal(x, "cancelled"))
     .onCancel(x => t.equal(x, "cancelled"));
-
-});
-
-test("cancelThen works", function(t) {
-
-  t.plan(1);
-
-  CancelablePromise.cancel("cancelled")
-    .cancelThen(x => t.equal(x, "cancelled"));
 
 });

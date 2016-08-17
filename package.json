@@ -1,10 +1,10 @@
 {
   "name": "@rtm/cancelable-promise",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A lightweight approach to cancelable promises",
   "main": "index.js",
   "scripts": {
-    "test": "tape 'tests/*.test.js'",
+    "test": "tsc && tape 'tests/*.test.js'",
     "postinstall": "typings install",
     "build": "tsc"
   },
