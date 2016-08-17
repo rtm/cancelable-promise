@@ -1,75 +1,71 @@
 // cancelable-promise/index.ts
 //
-// Implement lightweight cancelable promises.
+// Cancelable promises.
 //
 // Usage:
 // ```
-// import {CancelablePromise} from 'cancelable-promise';
+// import {CancelablePromise} from '@rtm/cancelable-promise';
 //
-// new CancelablePromise(function(resolve, reject[, cancel]) {...}[, canceler])[ { ... }.onCancel(...).then(...).catch(...);
-//                                                  ^^^^^^           ^^^^^^^^
+// Construct a new promise:
+// new CancelablePromise((resolve, reject[, cancel]) => {...})
+//
+// Cancel a promise via a canceler:
+// new CancelablePromise((resolve, reject) => {...}, canceler])
+//
+// Be alerted when a promise is canceled:
+// cancelablePromise.onCancel(...).then(...)
 // ```
+
+type CancelableExecutor<T>  = (
+  resolve: (value?: T | PromiseLike<T>) => void,
+  reject: (reason?: any) => void,
+  cancel: (reason?: any) => void
+) => void;
+
+enum State { PENDING, FULFILLED, REJECTED, CANCELED};
 
 export class CancelablePromise<T> extends Promise<T> {
 
-  // Static method to immediately create a canceled promise.
-  static cancel(reason) {
-    return new CancelablePromise(function(_, __, cancel) { cancel(reason); });
-  }
+  // Static method to create a canceled promise, used for what?
+  static cancel(detail) { return new this((resolve, reject, cancel) => cancel(detail)); }
 
-  // Instance methods specific to cancelable promises.
-  private onCancel: (handler: (reason: any) => void) => CancelablePromise<T>;
-  private onCancelThrow: () => CancelablePromise<T>;
-  public cancelThen: (onFulfilled: any, onRejected?: any) => Promise<any>;
+  private state: State = State.PENDING;
+  private cancelDetail: any;
+  private onCancels: Function[] = [];
 
-  constructor(
-    executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void, cancel: (reason?: any) => void) => void,
-    canceler?: Promise<any>
-  ) {
-    let canceled = false;     // Promise is in pending/canceled state.
-    let cancelReason;         // Reason given at cancellation time.
-    let settled = false;      // Promise has been settled; may no longer be canceled.
-    let onCancels = [];       // `onCancel` handlers registered before cancellation.
+  constructor(executor: CancelableExecutor<T>, canceler?: Promise<any>) {
+    super((resolve, reject) => {
+      if (canceler) canceler.then(detail => this.cancel(detail));
 
-    // Cancel the promise. Mark it as such. Invoke pre-registered handlers if any.
-    function cancel(v) {
-      if (settled || canceled) return;
-      cancelReason = v;
-      onCancels.forEach(handler => handler(cancelReason));
-      canceled = true;
-    }
-
-    // Resolve or reject the promise, marking it as settled to prevent cancellation.
-    function settle(cb) { return v => { settled = true; if (!canceled) cb(v); }; }
-
-    // Create the underlying native promise.
-    // Set up `canceler` to possibly cancel.
-    // Call the executor with an extra `cancel` parameter.
-    super(function(resolve, reject) {
-      if (canceler) canceler.then(cancel);
-
+      // Wait a tick, then maybe call the executor.
       Promise.resolve().then(() => {
-        if (!canceled) executor(settle(resolve), settle(reject), cancel);
+        if (this.state === State.CANCELED) return;
+
+        executor(
+          value  => { if (this.state === State.PENDING) { this.state = State.FULFILLED; resolve(value); } },
+          reason => { if (this.state === State.PENDING) { this.state = State.REJECTED;  reject(reason); } },
+          detail => { this.cancel(detail); });
       });
-
     });
-
-    Object.defineProperties(this, {
-
-      // Event callback for canceled promises.
-      // This taps into the promise chain, leaving it intact.
-      onCancel: {
-        value(handler) {
-          if (canceled) handler(cancelReason);
-          else onCancels.push(handler);
-          return this;
-        }
-      },
-
-      canceled: {get() { return new Promise(resolved => this.onCancel(resolved)); }}
-
-    });
-
   }
+
+  // Callback for cancellation.
+  public onCancel(handler: Function): CancelablePromise<T> {
+    if (this.state === State.CANCELED) handler(this.cancelDetail);
+    else this.onCancels.push(handler);
+    return this;
+  }
+
+  // Convenience property for a promise which fulfills on cancellation.
+  public get canceled() { return new Promise(resolved => this.onCancel(resolved)); }
+
+  // Internal routine to handle canceling either via `canceler` or call to `cancel` parameter to executor.
+  private cancel(detail) {
+    if (this.state === State.PENDING) {
+      this.cancelDetail = detail;
+      this.state = State.CANCELED;
+      this.onCancels.forEach(handler => handler(this.cancelDetail));
+    }
+  };
 
 }

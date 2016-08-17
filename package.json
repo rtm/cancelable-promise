@@ -4,7 +4,7 @@
   "description": "A lightweight approach to cancelable promises",
   "main": "index.js",
   "scripts": {
-    "test": "tape 'tests/*.test.js'",
+    "test": "tsc && tape 'tests/*.test.js'",
     "postinstall": "typings install",
     "build": "tsc"
   },
